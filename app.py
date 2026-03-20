@@ -507,13 +507,9 @@ st.title("AFM Force-Distance Curve Viewer")
 with st.sidebar:
     st.header("Load Dataset")
 
-    file_types = ["zip"]
-    help_text = "Upload a ZIP file containing extracted CSV files (ppt-fd-*.csv)"
-    if PSPYLIB_AVAILABLE:
-        file_types.append("ps-ppt")
-        help_text = "Upload a ZIP of extracted CSVs or a .ps-ppt file"
-
-    uploaded = st.file_uploader(help_text, type=file_types)
+    uploaded = st.file_uploader(
+        "Upload a ZIP of extracted CSVs or a .ps-ppt file",
+        type=["zip", "ps-ppt"])
 
     if uploaded is not None:
         file_key = f"{uploaded.name}_{uploaded.size}"
