@@ -509,19 +509,24 @@ with st.sidebar:
 
     uploaded = st.file_uploader(
         "Upload a ZIP of extracted CSVs or a .ps-ppt file",
-        type=["zip", "ps-ppt"])
+        type=None)  # allow all file types — .ps-ppt not recognized by browser filters
 
     if uploaded is not None:
-        file_key = f"{uploaded.name}_{uploaded.size}"
-        if st.session_state.get('_upload_key') != file_key:
-            st.session_state['_upload_key'] = file_key
-            upload_type = "ppt" if uploaded.name.endswith(".ps-ppt") else "zip"
-            with st.spinner("Processing..."):
-                try:
-                    process_upload(uploaded, upload_type)
-                except Exception as e:
-                    st.error(f"Error loading dataset: {e}")
-                    st.session_state.loaded = False
+        is_ppt = uploaded.name.lower().endswith(".ps-ppt")
+        is_zip = uploaded.name.lower().endswith(".zip")
+        if not is_ppt and not is_zip:
+            st.error("Please upload a .ps-ppt or .zip file.")
+        else:
+            file_key = f"{uploaded.name}_{uploaded.size}"
+            if st.session_state.get('_upload_key') != file_key:
+                st.session_state['_upload_key'] = file_key
+                upload_type = "ppt" if is_ppt else "zip"
+                with st.spinner("Processing..."):
+                    try:
+                        process_upload(uploaded, upload_type)
+                    except Exception as e:
+                        st.error(f"Error loading dataset: {e}")
+                        st.session_state.loaded = False
 
     # Downloads (only after data is loaded)
     if st.session_state.loaded:
