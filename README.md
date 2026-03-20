@@ -23,12 +23,59 @@ A browser-based tool for visualizing and exploring Atomic Force Microscopy (AFM)
    - **All CSVs** — Every extracted force-distance curve in a ZIP
    - **Full export** — All CSVs + selected curves + topography and F-d curve images + metadata
 
-## Supported File Formats
+## Data Formats
 
-| Format | Description |
-|---|---|
-| `.ps-ppt` | Park Systems PinPoint raw data file (processed directly in the browser) |
-| `.zip` | ZIP archive containing pre-extracted CSV files (`ppt-fd-slow*-fast*.csv`) |
+### `.ps-ppt` Files (Park Systems PinPoint)
+
+The `.ps-ppt` format is a proprietary binary file produced by [Park Systems](https://www.parksystems.com/) AFM instruments during PinPoint nanomechanical measurements. Each file contains a complete force-distance mapping dataset: the AFM tip approaches and retracts from the surface at every pixel in a grid (e.g., 64x64), recording force vs. separation at each location.
+
+The app reads `.ps-ppt` files directly using Park Systems' `pspylib` library, which extracts the data into individual CSV files (one per pixel) for processing. This extraction happens automatically when you upload a `.ps-ppt` file.
+
+### Extracted CSV Format
+
+Each pixel produces one CSV file named `ppt-fd-slow{Y}-fast{X}.csv`, where X and Y are the pixel indices. The CSV contains:
+
+**Metadata header (rows 1-10):**
+
+| Row | Key | Example |
+|---|---|---|
+| 1 | `export.time` | `Mon Nov 17 13:38:29 2025` |
+| 2 | `scan.geometry` | Scan dimensions, pixel count, rotation (JSON dict) |
+| 3 | `cantilever.name` | Cantilever model (e.g., `FMR`) |
+| 4 | `cantilever.cal` | Force constant (N/m), force slope, reference intensity |
+| 5 | `cantilever.geometry` | Tip length, height, radius, width (nm) |
+| 6 | `pinpoint.basic` | Approach/retract speeds (um/s) |
+| 7 | `pinpoint.details` | Baseline, thresholds, z-control parameters |
+| 8 | `sample` | Sample properties (e.g., Poisson ratio) |
+| 9 | `file` | Original file paths |
+| 10 | `info` | Channel definitions, timing, pixel index |
+
+**Data columns (after header):**
+
+| Column | Unit | Description |
+|---|---|---|
+| `Lfm` | volt | Lateral force microscopy signal |
+| `Force` | nanonewton | Vertical force on the cantilever tip |
+| `Separation` | micrometer | Tip-sample separation distance |
+
+The data rows contain the full approach-retract cycle. The app splits the data at the maximum force point: everything before the peak is the **approach** curve, and everything after is the **retract** curve.
+
+### Preparing a ZIP Upload
+
+If you have already extracted the CSVs from a `.ps-ppt` file (e.g., using Park Systems' SmartScan software), you can upload them as a ZIP:
+
+1. Locate the folder containing the extracted `ppt-fd-slow*-fast*.csv` files
+2. Select all CSV files and compress them into a ZIP archive
+3. Upload the ZIP to the app
+
+The folder should contain files like:
+```
+ppt-fd-slow0-fast0.csv
+ppt-fd-slow0-fast1.csv
+ppt-fd-slow0-fast2.csv
+...
+ppt-fd-slow63-fast63.csv
+```
 
 ## Running Locally
 
